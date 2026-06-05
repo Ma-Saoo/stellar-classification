@@ -1,0 +1,18 @@
+# Stellar Spectral Classification — Python dependencies
+# Pinned to the versions used to produce the results in the paper.
+# Install with:  pip install -r requirements.txt
+#
+# These six packages are imported directly by the pipeline. Their own
+# dependencies (scipy, joblib, astropy, pyvo, etc.) are pulled in
+# automatically by pip, so they are not listed here.
+
+numpy==2.4.4
+pandas==2.3.1
+matplotlib==3.10.5
+scikit-learn==1.8.0
+astroquery==0.4.11
+xgboost==3.2.0
+
+# Optional: only needed if USE_SMOTE = True in Star_Classification.py
+# (the default is False, so this is commented out by default).
+# imbalanced-learn==0.14.1
