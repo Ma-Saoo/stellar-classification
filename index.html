@@ -296,7 +296,7 @@
   <p>Importances from the two tree-based models align with physical expectations, indicating they learned genuine structure rather than artifacts. In both models the color indices occupy the top ranks while the raw magnitudes (<code>u, g, r, i, z</code>) cluster at the bottom, which is the result that matters: temperature is encoded in the <em>shape</em> of the spectral energy distribution that colors capture, not in absolute brightness. The exact ordering within the colors differs by model, as expected for correlated features. XGBoost leads with <code>u&minus;r</code>, <code>g&minus;r</code>, and <code>g&minus;i</code>; Random Forest leads with <code>r&minus;i</code>, <code>g&minus;i</code>, and <code>g&minus;r</code>. The recurring presence of <code>g&minus;r</code> and <code>g&minus;i</code> near the top of both is consistent with their role spanning the optical slope where the OBAFGKM sequence separates most cleanly. That the two algorithms agree on the color-over-magnitude split, despite disagreeing on the precise winner, is reassuring evidence the signal is physical rather than an artifact of one model.</p>
   <figure>
     <img src="feature_importance_xgboost_subclass_train.png" alt="XGBoost feature importances">
-    <figcaption><b>Figure 4.</b> XGBoost feature importances. The dominance of <code>g&minus;r</code> and the color indices over raw magnitudes recovers the known physics of the temperature sequence.</figcaption>
+    <figcaption><b>Figure 4.</b> XGBoost feature importances. The color indices (blue) occupy the top ranks, led by <code>u&minus;r</code>, while the raw magnitudes (green) trail at the bottom, recovering the expected physics: temperature lives in color, not absolute brightness.</figcaption>
   </figure>
 
   <figure>
