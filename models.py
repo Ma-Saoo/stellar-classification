@@ -136,24 +136,25 @@ def _prepare_data(
               f"({n_dropped:,} rows): {sorted(rare.index.tolist())}")
     df_clean = df_clean[df_clean[target].isin(valid)]
 
-    X = df_clean[features].values
+    # Keep X as a DataFrame so the original df index survives the split.
+    # (Previously X = df_clean[features].values dropped the index, and the
+    #  rebuilt DataFrames got a fresh RangeIndex — breaking df.loc[X_test.index]
+    #  alignment downstream in save_predictions.)
+    X = df_clean[features]
     y = df_clean[target].values
 
     # First split: train+val vs test
-    X_tv, X_test, y_tv, y_test = train_test_split(
+    X_tv, X_test_df, y_tv, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state, stratify=y
     )
     # Second split: train vs val (val_size is fraction of original data)
     val_frac = val_size / (1.0 - test_size)
-    X_train, X_val, y_train, y_val = train_test_split(
+    X_train_df, X_val_df, y_train, y_val = train_test_split(
         X_tv, y_tv, test_size=val_frac, random_state=random_state, stratify=y_tv
     )
 
-    # Wrap back into DataFrames so downstream code has column names
-    X_train_df = pd.DataFrame(X_train, columns=features)
-    X_val_df   = pd.DataFrame(X_val,   columns=features)
-    X_test_df  = pd.DataFrame(X_test,  columns=features)
-
+    # X_train_df / X_val_df / X_test_df retain df_clean's original index labels,
+    # so X_test_df.index can be used directly against df in evaluation.
     return X_train_df, X_val_df, X_test_df, y_train, y_val, y_test
 
 

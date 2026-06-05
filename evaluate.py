@@ -47,7 +47,9 @@ CLASS_COLORS = {
     "M": "#FF4500",
 }
 
-FIGURE_DIR = "figures"
+# Figures are written to a "figures" folder next to this script,
+# regardless of the current working directory you run from.
+FIGURE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures")
 
 
 def _ensure_figure_dir():
@@ -552,7 +554,16 @@ def save_predictions(
     idx       = ref.X_test.index
     keep_cols = ["spectral_class", "spectral_subclass",
                  "g_r", "u_g", "r_i", "i_z"]
-    out_df = df.loc[idx, [c for c in keep_cols if c in df.columns]].copy()
+
+    # Defensive: only keep test labels that actually exist in df. With the
+    # index-preserving split in models._prepare_data this should be all of
+    # them, but the intersection means any future index change degrades to a
+    # smaller CSV with a warning rather than a hard KeyError.
+    valid_idx = idx.intersection(df.index)
+    if len(valid_idx) < len(idx):
+        print(f"      Note: {len(idx) - len(valid_idx):,} of {len(idx):,} test "
+              f"rows not found in df index; writing the {len(valid_idx):,} that align.")
+    out_df = df.loc[valid_idx, [c for c in keep_cols if c in df.columns]].copy()
 
     for name, result in results.items():
         col = f"pred_{name}"

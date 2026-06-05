@@ -3,482 +3,346 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stellar Spectral Classification from SDSS Photometry — Jensen</title>
+<title>Stellar Spectral Classification from SDSS Photometry — Jensen Masao</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0e1a;
-    --bg-soft:#111626;
-    --panel:#141a2c;
-    --panel-edge:#222a42;
-    --ink:#e8ecf6;
-    --ink-soft:#aab4cc;
-    --ink-faint:#6f7a96;
-    --accent:#ffb454;      /* warm K-star amber */
-    --accent-2:#6a8ef0;    /* hot-star blue */
-    --accent-3:#ff6b4a;    /* M-star red */
-    --rule:#28324e;
-    --maxw:820px;
-    --serif:"Newsreader",Georgia,serif;
-    --display:"Fraunces",Georgia,serif;
+    --ink:#1a1a1a;
+    --ink-soft:#3a3a3a;
+    --ink-faint:#6a6a6a;
+    --rule:#d8d8d8;
+    --link:#7a1414;
+    --accent:#b5651d;
+    --paper:#ffffff;
+    --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+    --sans:"Source Sans 3",-apple-system,sans-serif;
     --mono:"JetBrains Mono",ui-monospace,monospace;
+    --col:680px;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
-    margin:0;
-    background:var(--bg);
-    color:var(--ink);
-    font-family:var(--serif);
-    font-size:18px;
-    line-height:1.72;
+    margin:0;background:#f4f4f2;color:var(--ink);
+    font-family:var(--serif);font-size:17px;line-height:1.6;
     -webkit-font-smoothing:antialiased;
-    overflow-x:hidden;
   }
-
-  /* ---- starfield backdrop ---- */
-  .sky{position:fixed;inset:0;z-index:0;pointer-events:none;
-    background:
-      radial-gradient(1200px 700px at 78% -8%, rgba(106,142,240,.12), transparent 60%),
-      radial-gradient(900px 600px at 8% 12%, rgba(255,180,84,.06), transparent 55%),
-      linear-gradient(180deg,#0a0e1a 0%, #090c16 100%);
+  .sheet{
+    max-width:var(--col);margin:0 auto;background:var(--paper);
+    padding:64px 64px 80px;
+    box-shadow:0 1px 3px rgba(0,0,0,.06),0 8px 40px rgba(0,0,0,.05);
   }
-  .sky canvas{width:100%;height:100%;display:block;opacity:.9;}
+  @media(min-width:1100px){ .sheet{margin:40px auto;} }
 
-  .wrap{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 26px;}
+  .arxiv-id{font-family:var(--mono);font-size:.7rem;color:var(--ink-faint);letter-spacing:.02em;
+    writing-mode:vertical-rl;transform:rotate(180deg);position:fixed;left:max(12px,calc(50% - 420px));top:90px;}
+  @media(max-width:1099px){.arxiv-id{display:none;}}
 
-  /* ---- masthead ---- */
-  header.masthead{padding:92px 0 30px;border-bottom:1px solid var(--rule);}
-  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.34em;text-transform:uppercase;color:var(--accent);margin:0 0 22px;}
-  h1.title{font-family:var(--display);font-weight:500;font-size:clamp(2.1rem,5.4vw,3.5rem);line-height:1.06;letter-spacing:-.015em;margin:0;color:#fff;}
-  h1.title .sub{display:block;font-size:.52em;font-weight:400;color:var(--ink-soft);font-style:italic;margin-top:.5em;letter-spacing:0;}
-  .byline{margin:30px 0 0;font-family:var(--mono);font-size:.8rem;color:var(--ink-faint);letter-spacing:.04em;line-height:2;}
-  .byline b{color:var(--ink-soft);font-weight:500;}
-  .chips{margin-top:22px;display:flex;flex-wrap:wrap;gap:8px;}
-  .chip{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;color:var(--ink-soft);
-    border:1px solid var(--panel-edge);border-radius:2px;padding:5px 10px;background:rgba(255,255,255,.015);}
+  header.head{text-align:center;border-bottom:1px solid var(--ink);padding-bottom:26px;margin-bottom:8px;}
+  h1{font-family:var(--serif);font-weight:600;font-size:1.72rem;line-height:1.22;letter-spacing:-.008em;margin:0 0 6px;}
+  .subtitle{font-size:1.04rem;font-style:italic;color:var(--ink-soft);font-weight:400;margin:0 0 22px;}
+  .authors{font-size:1.02rem;margin:14px 0 4px;}
+  .affil{font-size:.84rem;color:var(--ink-faint);font-style:italic;line-height:1.5;margin:6px 0 0;}
+  .pubinfo{font-family:var(--mono);font-size:.7rem;color:var(--ink-faint);letter-spacing:.04em;margin-top:16px;}
+  .pubinfo a{color:var(--link);}
 
-  /* ---- spectral ribbon ---- */
-  .ribbon{display:flex;height:7px;margin:34px 0 0;border-radius:4px;overflow:hidden;box-shadow:0 0 26px rgba(106,142,240,.18);}
+  .ribbon-block{margin:24px auto 4px;max-width:520px;}
+  .ribbon{display:flex;height:11px;border:1px solid #ccc;border-radius:2px;overflow:hidden;}
   .ribbon span{flex:1;}
-  .ribbon .O{background:#6a8ef0;} .ribbon .B{background:#8fb8ed;} .ribbon .A{background:#dfe7ff;}
-  .ribbon .F{background:#fff6da;} .ribbon .G{background:#ffe07c;} .ribbon .K{background:#ffa040;}
-  .ribbon .M{background:#ff5a36;}
-  .ribbon-key{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.62rem;color:var(--ink-faint);margin-top:7px;letter-spacing:.1em;}
+  .ribbon .O{background:#9bb0ff;} .ribbon .B{background:#aec6ff;} .ribbon .A{background:#eef2ff;}
+  .ribbon .F{background:#fcf8e3;} .ribbon .G{background:#ffe98a;} .ribbon .K{background:#ffa94d;}
+  .ribbon .M{background:#ff6b4a;}
+  .ribbon-key{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.6rem;
+    color:var(--ink-faint);margin-top:5px;letter-spacing:.04em;}
+  .ribbon-cap{text-align:center;font-size:.76rem;color:var(--ink-faint);font-style:italic;margin-top:8px;}
 
-  /* ---- abstract ---- */
-  .abstract{margin:46px 0 8px;padding:30px 32px;background:linear-gradient(180deg,var(--panel),#11162400);
-    border:1px solid var(--panel-edge);border-left:2px solid var(--accent);border-radius:3px;}
-  .abstract h2{font-family:var(--mono);font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin:0 0 14px;font-weight:500;}
-  .abstract p{margin:0;font-size:1.02rem;color:var(--ink-soft);line-height:1.78;}
-  .abstract p+p{margin-top:14px;}
+  .abstract{margin:30px auto 10px;max-width:560px;}
+  .abstract h2{text-align:center;font-weight:600;font-size:.95rem;letter-spacing:.02em;margin:0 0 10px;}
+  .abstract p{font-size:.92rem;line-height:1.55;text-align:justify;margin:0 0 10px;color:var(--ink-soft);}
+  .keywords{font-size:.84rem;color:var(--ink-faint);margin-top:12px;text-align:justify;}
+  .keywords b{color:var(--ink-soft);font-weight:600;}
 
-  /* ---- section structure ---- */
-  section{padding:54px 0 8px;}
-  .sec-num{font-family:var(--mono);font-size:.74rem;letter-spacing:.2em;color:var(--accent);display:block;margin-bottom:10px;}
-  h2.sec{font-family:var(--display);font-weight:500;font-size:clamp(1.5rem,3.6vw,2.05rem);letter-spacing:-.01em;margin:0 0 8px;color:#fff;line-height:1.12;}
-  h3.subsec{font-family:var(--display);font-weight:600;font-size:1.18rem;color:var(--ink);margin:38px 0 6px;letter-spacing:.005em;}
-  p{margin:16px 0;}
-  p.lead{font-size:1.06rem;color:var(--ink-soft);}
-  a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(255,180,84,.3);transition:border-color .2s;}
-  a:hover{border-color:var(--accent);}
-  strong{color:#fff;font-weight:600;}
-  em{color:var(--ink);}
-  code{font-family:var(--mono);font-size:.82em;background:rgba(106,142,240,.1);color:#bcd0ff;padding:1px 6px;border-radius:3px;}
+  hr.div{border:none;border-top:1px solid var(--rule);margin:34px 0;}
 
-  ul.clean{list-style:none;padding:0;margin:18px 0;}
-  ul.clean li{position:relative;padding:8px 0 8px 28px;border-bottom:1px solid var(--rule);color:var(--ink-soft);font-size:.98rem;line-height:1.62;}
-  ul.clean li:last-child{border-bottom:none;}
-  ul.clean li::before{content:"";position:absolute;left:4px;top:18px;width:7px;height:7px;border-radius:50%;
-    background:var(--accent);box-shadow:0 0 8px var(--accent);}
-  ul.clean li b{color:var(--ink);font-weight:600;}
+  h2.sec{font-weight:600;font-size:1.18rem;margin:34px 0 4px;letter-spacing:-.005em;}
+  h2.sec .n{margin-right:.5em;}
+  h3.sub{font-weight:600;font-size:1.0rem;font-style:italic;margin:22px 0 2px;}
+  p{margin:12px 0;text-align:justify;hyphens:auto;}
+  p.first{margin-top:6px;}
+  a{color:var(--link);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  strong{font-weight:600;}
+  code{font-family:var(--mono);font-size:.84em;background:#f3f3f1;padding:.5px 4px;border-radius:2px;color:#444;}
 
-  /* ---- thesis callout ---- */
-  .thesis{margin:30px 0;padding:24px 28px;border:1px solid var(--accent);border-radius:3px;
-    background:radial-gradient(120% 140% at 0% 0%, rgba(255,180,84,.08), transparent 70%);}
-  .thesis .label{font-family:var(--mono);font-size:.66rem;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
-  .thesis p{margin:0;font-size:1.04rem;color:var(--ink);}
+  ul{margin:12px 0;padding-left:0;list-style:none;}
+  ul li{position:relative;padding:5px 0 5px 22px;text-align:justify;font-size:.97rem;}
+  ul li::before{content:"\2022";position:absolute;left:6px;color:var(--accent);font-weight:700;}
+  ul li b{font-weight:600;}
 
-  /* ---- key result stat band ---- */
-  .stat-band{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin:34px 0;
-    background:var(--panel-edge);border:1px solid var(--panel-edge);border-radius:4px;overflow:hidden;}
-  .stat{background:var(--bg-soft);padding:24px 18px;text-align:center;}
-  .stat .big{font-family:var(--display);font-size:2.05rem;font-weight:500;color:var(--accent);line-height:1;letter-spacing:-.02em;}
-  .stat .arrow{color:var(--ink-faint);font-size:1.2rem;}
-  .stat .lab{font-family:var(--mono);font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin-top:10px;}
-  .stat .delta{font-family:var(--mono);font-size:.72rem;color:#5fd38a;margin-top:5px;}
+  figure{margin:26px 0;padding:0;}
+  .figslot{border:1px solid var(--rule);background:#fafafa;
+    background-image:linear-gradient(45deg,#f4f4f2 25%,transparent 25%,transparent 75%,#f4f4f2 75%),
+      linear-gradient(45deg,#f4f4f2 25%,transparent 25%,transparent 75%,#f4f4f2 75%);
+    background-size:16px 16px;background-position:0 0,8px 8px;
+    min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:30px 24px;border-radius:2px;}
+  .figslot .ic{font-family:var(--mono);font-size:.62rem;letter-spacing:.16em;color:var(--accent);
+    border:1px solid var(--accent);border-radius:2px;padding:3px 9px;margin-bottom:14px;background:#fff;}
+  .figslot .fname{font-family:var(--mono);font-size:.84rem;color:var(--ink);margin:0 0 6px;font-weight:500;}
+  .figslot .fhint{font-size:.8rem;color:var(--ink-faint);max-width:420px;margin:0;line-height:1.45;font-family:var(--sans);}
+  .figslot .fhint code{font-size:.82em;background:#fff;}
+  figure img{width:100%;display:block;border:1px solid var(--rule);border-radius:2px;}
+  figcaption{font-size:.82rem;color:var(--ink-soft);margin-top:10px;line-height:1.5;text-align:justify;}
+  figcaption b{font-weight:600;}
 
-  /* ---- figure placeholders ---- */
-  figure{margin:34px 0;padding:0;}
-  .figslot{border:1px dashed var(--panel-edge);border-radius:5px;background:
-      repeating-linear-gradient(135deg, rgba(255,255,255,.012) 0 12px, transparent 12px 24px), var(--bg-soft);
-    min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:36px 26px;}
-  .figslot .ic{font-family:var(--mono);font-size:.7rem;letter-spacing:.2em;color:var(--accent);border:1px solid var(--accent);
-    border-radius:2px;padding:4px 10px;margin-bottom:16px;}
-  .figslot .fname{font-family:var(--mono);font-size:.92rem;color:var(--ink);margin:0 0 6px;}
-  .figslot .fhint{font-size:.86rem;color:var(--ink-faint);max-width:440px;margin:0;line-height:1.5;}
-  figure img{width:100%;display:block;border-radius:5px;border:1px solid var(--panel-edge);}
-  figcaption{font-size:.86rem;color:var(--ink-faint);margin-top:12px;line-height:1.55;padding-left:14px;border-left:2px solid var(--rule);}
-  figcaption b{color:var(--ink-soft);font-family:var(--mono);font-size:.78rem;letter-spacing:.05em;}
+  .tbl{margin:26px 0;font-size:.84rem;}
+  .tbl .cap{font-size:.82rem;color:var(--ink-soft);margin-bottom:8px;text-align:justify;line-height:1.45;}
+  .tbl .cap b{font-weight:600;}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
+  table.book{border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);}
+  table.book thead th{border-bottom:1px solid var(--ink);font-weight:600;font-family:var(--sans);
+    font-size:.78rem;padding:7px 10px;text-align:right;}
+  table.book thead th:first-child{text-align:left;}
+  table.book td{padding:6px 10px;text-align:right;color:var(--ink-soft);}
+  table.book td:first-child{text-align:left;color:var(--ink);}
+  table.book tbody tr.rule-top td{border-top:1px solid var(--rule);}
+  table.book .em{color:var(--ink);font-weight:600;}
+  .mono-cell{font-family:var(--mono);font-size:.82rem;}
 
-  /* ---- data table ---- */
-  .tablecard{margin:28px 0;border:1px solid var(--panel-edge);border-radius:5px;overflow:hidden;}
-  table{width:100%;border-collapse:collapse;font-size:.9rem;}
-  caption{caption-side:top;text-align:left;font-family:var(--mono);font-size:.66rem;letter-spacing:.18em;
-    text-transform:uppercase;color:var(--ink-faint);padding:16px 18px 12px;background:var(--bg-soft);}
-  th,td{padding:11px 16px;text-align:right;border-top:1px solid var(--rule);}
-  th:first-child,td:first-child{text-align:left;}
-  thead th{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);
-    background:var(--bg-soft);border-top:none;font-weight:500;}
-  tbody td{color:var(--ink-soft);font-family:var(--mono);font-size:.84rem;}
-  tbody td:first-child{font-family:var(--serif);color:var(--ink);font-size:.95rem;}
-  tbody tr.best td{color:var(--ink);}
-  tbody tr.best td:first-child::after{content:" ◄";color:var(--accent);font-family:var(--mono);font-size:.7rem;}
-  tbody tr:hover td{background:rgba(106,142,240,.04);}
-  .tag-base{color:var(--ink-faint)!important;}
+  .headline{margin:22px 0;padding:14px 20px;border-left:3px solid var(--accent);background:#fdfaf5;}
+  .headline .h-row{display:flex;justify-content:space-around;gap:14px;flex-wrap:wrap;text-align:center;}
+  .headline .stat .v{font-weight:600;font-size:1.18rem;color:var(--ink);}
+  .headline .stat .v .ar{color:var(--accent);margin:0 .15em;}
+  .headline .stat .l{font-family:var(--sans);font-size:.7rem;color:var(--ink-faint);letter-spacing:.06em;
+    text-transform:uppercase;margin-top:2px;}
 
-  /* ---- two col feature list ---- */
-  .feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0;}
-  .feat{border:1px solid var(--panel-edge);border-radius:4px;padding:16px 18px;background:var(--bg-soft);}
-  .feat .ft{font-family:var(--mono);font-size:.8rem;color:var(--accent-2);margin-bottom:6px;}
-  .feat .fd{font-size:.88rem;color:var(--ink-soft);line-height:1.5;margin:0;}
+  .refs{margin-top:34px;font-size:.8rem;color:var(--ink-soft);}
+  .refs h2{font-size:1.05rem;font-weight:600;margin-bottom:8px;}
+  .refs p{font-size:.8rem;line-height:1.45;margin:6px 0;text-align:justify;}
 
-  /* ---- footer ---- */
-  footer{margin-top:70px;border-top:1px solid var(--rule);padding:40px 0 90px;color:var(--ink-faint);font-size:.85rem;}
-  footer .ackn{font-style:italic;color:var(--ink-faint);line-height:1.6;}
-  footer .meta{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;margin-top:22px;color:var(--ink-faint);}
+  footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);
+    font-family:var(--mono);font-size:.68rem;color:var(--ink-faint);letter-spacing:.03em;line-height:1.7;text-align:center;}
 
-  /* ---- nav dots ---- */
-  .tocnav{position:fixed;right:26px;top:50%;transform:translateY(-50%);z-index:5;display:flex;flex-direction:column;gap:13px;}
-  .tocnav a{width:9px;height:9px;border-radius:50%;background:transparent;border:1px solid var(--ink-faint);
-    padding:0;transition:all .25s;position:relative;}
-  .tocnav a:hover,.tocnav a.on{background:var(--accent);border-color:var(--accent);box-shadow:0 0 10px var(--accent);}
-  .tocnav a span{position:absolute;right:18px;top:50%;transform:translateY(-50%);white-space:nowrap;
-    font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;color:var(--ink-soft);opacity:0;pointer-events:none;transition:opacity .2s;
-    background:var(--panel);padding:3px 8px;border-radius:2px;border:1px solid var(--panel-edge);}
-  .tocnav a:hover span{opacity:1;}
-  @media(max-width:1180px){.tocnav{display:none;}}
-
-  /* reveal */
-  .rv{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease;}
-  .rv.in{opacity:1;transform:none;}
-
-  @media(max-width:620px){
+  @media(max-width:720px){
     body{font-size:16px;}
-    .stat-band{grid-template-columns:1fr;}
-    .feat-grid{grid-template-columns:1fr;}
-    .abstract{padding:24px 20px;}
-    th,td{padding:9px 10px;font-size:.78rem;}
-    header.masthead{padding:60px 0 26px;}
+    .sheet{padding:40px 24px 56px;}
+    h1{font-size:1.42rem;}
+    .headline .h-row{gap:10px;}
   }
+  /* ---- floating download-PDF button (screen only) ---- */
+  .dl-pdf{position:fixed;right:22px;bottom:22px;z-index:50;
+    font-family:var(--sans);font-size:.82rem;font-weight:600;letter-spacing:.02em;
+    color:#fff;background:var(--accent);border:none;border-radius:6px;
+    padding:11px 16px;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.18);
+    display:inline-flex;align-items:center;gap:7px;transition:transform .15s,box-shadow .15s;}
+  .dl-pdf:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(0,0,0,.24);}
+  .dl-pdf svg{width:15px;height:15px;}
+
+  @media print{
+    body{background:#fff !important;font-size:10.5pt;}
+    .sheet{box-shadow:none !important;margin:0 auto !important;max-width:100% !important;padding:0 !important;}
+    .arxiv-id{display:none !important;}
+    .dl-pdf{display:none !important;}
+    h2.sec,h3.sub{page-break-after:avoid;}
+    figure,.tbl,.headline{page-break-inside:avoid;}
+    .figslot{min-height:150px;}
+    a{color:#7a1414 !important;text-decoration:none;}
+  }
+  @page{margin:16mm 18mm;}
 </style>
 </head>
 <body>
-<div class="sky"><canvas id="stars"></canvas></div>
 
-<nav class="tocnav" aria-label="Section navigation">
-  <a href="#abstract" data-t="Abstract"><span>Abstract</span></a>
-  <a href="#intro" data-t="Introduction"><span>1 · Introduction</span></a>
-  <a href="#methods" data-t="Methods"><span>2 · Methods</span></a>
-  <a href="#results" data-t="Results"><span>3 · Results</span></a>
-  <a href="#conclusions" data-t="Conclusions"><span>4 · Conclusions</span></a>
-</nav>
+<button class="dl-pdf" onclick="window.print()" title="Save this page as a PDF">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  Download PDF
+</button>
+<div class="arxiv-id">portfolio · astro-ph.IM · 2026</div>
 
-<div class="wrap">
+<article class="sheet">
 
-  <!-- ================= MASTHEAD ================= -->
-  <header class="masthead">
-    <p class="eyebrow">Applied Machine Learning · Observational Astronomy</p>
-    <h1 class="title">Stellar Spectral Classification from Broadband Photometry
-      <span class="sub">Can cheap five-band imaging stand in for expensive spectroscopy?</span>
-    </h1>
-    <div class="byline">
-      <b>Jensen</b> &nbsp;·&nbsp; Computer &amp; Mathematical Sciences, University of Toronto<br>
-      Data: Sloan Digital Sky Survey DR17 &nbsp;·&nbsp; 93,628 spectroscopically-labelled stars
-    </div>
-    <div class="chips">
-      <span class="chip">SDSS DR17</span>
-      <span class="chip">Random Forest · XGBoost · MLP</span>
-      <span class="chip">scikit-learn</span>
-      <span class="chip">11 photometric features</span>
-      <span class="chip">OBAFGKM</span>
-    </div>
+  <header class="head">
+    <h1>Stellar Spectral Classification from SDSS Broadband Photometry using Machine Learning</h1>
+    <div class="authors">Jensen Masao</div>
+    <p class="affil">Department of Computer &amp; Mathematical Sciences, University of Toronto</p>
+    <p class="pubinfo">SDSS DR17 &middot; 93,628 spectroscopically-labelled stars &middot; Random Forest &middot; XGBoost &middot; MLP<br>
+      Code &amp; pipeline: <a href="https://github.com/Ma-Saoo/stellar-classification" target="_blank" rel="noopener">github.com/Ma-Saoo/stellar-classification</a></p>
+  </header>
+
+  <div class="ribbon-block">
     <div class="ribbon" title="The Harvard spectral sequence, hot to cool">
       <span class="O"></span><span class="B"></span><span class="A"></span><span class="F"></span><span class="G"></span><span class="K"></span><span class="M"></span>
     </div>
     <div class="ribbon-key">
-      <span>O — &gt;30,000 K</span><span>A</span><span>F</span><span>G ☉</span><span>K</span><span>M — &lt;3,700 K</span>
+      <span>O</span><span>B</span><span>A</span><span>F</span><span>G</span><span>K</span><span>M</span>
     </div>
-  </header>
-
-  <!-- ================= ABSTRACT ================= -->
-  <div class="abstract rv" id="abstract">
-    <h2>Abstract</h2>
-    <p>Spectroscopy is the gold standard for classifying stars by temperature, but it is slow and expensive: each star must be observed individually and its light dispersed into a full spectrum. Broadband <em>photometry</em>—simply measuring brightness through a handful of colored filters—is orders of magnitude cheaper and already exists for billions of objects. This project asks whether machine learning can recover a star's spectral class from photometry alone.</p>
-    <p>Using 93,628 spectroscopically-labelled stars from SDSS DR17, I engineer eleven color and magnitude features and train three classifiers (Random Forest, XGBoost, a multilayer perceptron) against a classical color-cut baseline. The headline result: ML lifts K-type recall from <strong>46% to 91%</strong> and K-type F1 from <strong>51% to 90%</strong>—a result with real operational value for exoplanet host-star surveys. At the same time, the persistent F/G confusion near 6,000 K is shown to be an <em>irreducible physical limit</em> of broadband photometry rather than a modelling failure, neatly separating what ML can fix from what only a spectrograph can.</p>
+    <p class="ribbon-cap">The Harvard spectral sequence, ordered by surface temperature:
+      O (&gt;30,000&nbsp;K, blue) through M (&lt;3,700&nbsp;K, red). The Sun is a G-type star.</p>
   </div>
 
-  <!-- ================= 1. INTRODUCTION ================= -->
-  <section id="intro">
-    <span class="sec-num">01</span>
-    <h2 class="sec">Introduction &amp; Motivation</h2>
-
-    <p class="lead rv">Stellar classification is one of the oldest organizing tasks in astronomy. The Harvard spectral sequence—<strong>O, B, A, F, G, K, M</strong>—orders stars by surface temperature, from blistering blue O-type stars hotter than 30,000 K down to cool red M-dwarfs below 3,700 K. Our own Sun is a G-type star sitting comfortably in the middle.</p>
-
-    <h3 class="subsec rv">Why spectroscopy is expensive</h3>
-    <p class="rv">Historically, classifying a star meant taking its <em>spectrum</em>: dispersing its light into a rainbow and reading the absorption lines that fingerprint each temperature regime. This is precise—but costly. A spectrograph collects light from one object (or, with fibers, a few hundred) at a time, needs long exposures to gather enough photons for a faint star, and demands substantial instrument time. Spectroscopy simply does not scale to the billions of stars in modern surveys.</p>
-
-    <h3 class="subsec rv">Why photometry is cheap—and tempting</h3>
-    <p class="rv">Photometry is the opposite. You point a wide-field camera at a patch of sky, slide a filter in front of the detector that passes one slice of the spectrum, and record how bright each star is. SDSS does this in five bands—<code>u g r i z</code>, spanning 354 to 913 nm—imaging millions of objects per night. The difference between two bands, a <em>color index</em> such as <code>g − r</code>, tracks where a star's blackbody curve peaks, which is a direct proxy for temperature: hot stars are blue (small <code>g−r</code>), cool stars are red (large <code>g−r</code>).</p>
-    <p class="rv">The opportunity is clear. If a model could map five cheap brightness measurements to a spectral class reliably, it could be unleashed on the billions of stars in current and next-generation imaging surveys—<strong>LSST/Rubin, Euclid</strong>—where spectroscopy will never be available. Crucially, SDSS <em>also</em> took spectra for a large subset of its imaged stars, giving us ground-truth labels to train and test against.</p>
-
-    <div class="thesis rv">
-      <div class="label">Core thesis</div>
-      <p>ML on photometric colors yields genuine, operationally useful gains for some classes—dramatically so for K-type stars—while the F/G boundary near 6,000 K remains fundamentally unresolvable without spectroscopy. The interesting science is in <em>separating</em> the two.</p>
-    </div>
-
-    <h3 class="subsec rv">Three questions</h3>
-    <ul class="clean rv">
-      <li><b>Performance.</b> Can ML trained on SDSS color indices beat classical color-cut classifiers across the full OBAFGKM sequence?</li>
-      <li><b>Limits.</b> Where does photometric classification fundamentally break down, and why?</li>
-      <li><b>Utility.</b> For which spectral class does ML deliver the most operationally useful improvement over the baseline?</li>
-    </ul>
+  <section class="abstract">
+    <h2>Abstract</h2>
+    <p>Spectroscopy is the gold standard for classifying stars by temperature, but it is slow and expensive: each star must be observed individually and its light dispersed into a full spectrum. Broadband photometry, which measures brightness through a handful of filters, is orders of magnitude cheaper and already exists for billions of objects. We ask whether machine learning can recover a star's spectral class from photometry alone. Using 93,628 spectroscopically-labelled stars from SDSS DR17, we engineer eleven color and magnitude features and train three classifiers (Random Forest, XGBoost, and a multilayer perceptron) against a classical color-cut baseline. Our central finding is that ML lifts K-type recall from 46% to 91% and K-type F1 from 51% to 90%. This result has real operational value for exoplanet host-star surveys. At the same time, we show that the persistent F/G confusion near 6,000&nbsp;K is an <em>irreducible physical limit</em> of broadband photometry rather than a modelling failure, cleanly separating what ML can fix from what only a spectrograph can resolve.</p>
   </section>
 
-  <!-- ================= 2. METHODS ================= -->
-  <section id="methods">
-    <span class="sec-num">02</span>
-    <h2 class="sec">Methodology</h2>
+  <hr class="div">
 
-    <h3 class="subsec rv">2.1 · Data acquisition</h3>
-    <p class="rv">Data were pulled from the SDSS SkyServer via an ADQL query joining the <code>SpecObj</code> and <code>PhotoObj</code> tables, selecting objects classed as <code>STAR</code> with a well-formed <code>subClass</code>. Quality cuts kept only reliable photometry: all five magnitudes between 14 and 23 (avoiding saturation at the bright end and the survey depth limit at the faint end), per-band uncertainties below 0.2 mag, and primary detections only (<code>mode = 1</code>) to drop duplicate observations. After parsing and cleaning, the working sample is <strong>93,628 stars</strong>.</p>
+  <h2 class="sec"><span class="n">1</span>Introduction</h2>
+  <p class="first">Stellar classification is one of the oldest organizing tasks in astronomy. The Harvard spectral sequence (O, B, A, F, G, K, M) orders stars by surface temperature, from blistering blue O-type stars hotter than 30,000&nbsp;K down to cool red M-dwarfs below 3,700&nbsp;K. Our own Sun is a middle-of-the-sequence G-type star. Assigning a star to its class is the foundational step for almost everything downstream: estimating its mass, age, and luminosity; selecting targets for exoplanet searches; and mapping the structure and populations of the galaxy.</p>
 
-    <div class="tablecard rv">
-      <table>
-        <caption>Class distribution — magnitude-limited SDSS stellar sample</caption>
-        <thead><tr><th>Class</th><th>Count</th><th>Share</th><th>Character</th></tr></thead>
-        <tbody>
-          <tr><td>O</td><td>463</td><td>0.5%</td><td class="tag-base">hot, blue, rare</td></tr>
-          <tr><td>B</td><td>834</td><td>0.9%</td><td class="tag-base">hot, blue</td></tr>
-          <tr><td>A</td><td>13,099</td><td>14.0%</td><td class="tag-base">white</td></tr>
-          <tr><td>F</td><td>48,667</td><td>52.0%</td><td class="tag-base">dominant class</td></tr>
-          <tr><td>G</td><td>9,320</td><td>10.0%</td><td class="tag-base">Sun-like</td></tr>
-          <tr><td>K</td><td>17,527</td><td>18.7%</td><td class="tag-base">exoplanet hosts</td></tr>
-          <tr><td>M</td><td>3,718</td><td>4.0%</td><td class="tag-base">cool, red dwarfs</td></tr>
-        </tbody>
-      </table>
+  <h3 class="sub">1.1&ensp;Why spectroscopy is expensive</h3>
+  <p>Historically, classifying a star meant taking its spectrum: dispersing its light into a rainbow and reading the absorption lines that fingerprint each temperature regime. This is precise but costly. A spectrograph collects light from one object at a time, or a few hundred with fiber systems. It requires long exposures to gather enough photons for faint stars, and demands substantial competitive telescope time. Spectroscopy simply does not scale to the billions of stars catalogued by modern imaging surveys.</p>
+
+  <h3 class="sub">1.2&ensp;Why photometry is cheap, and tempting</h3>
+  <p>Photometry is the opposite. A wide-field camera images a large patch of sky at once; a filter in front of the detector passes one slice of the spectrum, and the brightness of every star in the field is recorded simultaneously. SDSS images in five bands (<code>u g r i z</code>, spanning 354 to 913&nbsp;nm), capturing millions of objects per night. The difference between two bands, a <em>color index</em> such as <code>g&minus;r</code>, tracks where a star's blackbody curve peaks and therefore serves as a direct temperature proxy: hot stars are blue (small <code>g&minus;r</code>), cool stars are red (large <code>g&minus;r</code>).</p>
+  <p>The opportunity is clear. A model that maps five cheap brightness measurements to a spectral class could be applied to the billions of stars in current and next-generation imaging surveys such as LSST/Rubin and Euclid, where spectroscopy will never be available. Crucially, SDSS also obtained spectra for a large subset of its imaged stars, providing ground-truth labels to train and validate a photometric classifier against.</p>
+
+  <h3 class="sub">1.3&ensp;Contributions</h3>
+  <p>This work investigates three questions: (i) Can ML models trained on SDSS color indices outperform classical color-cut classifiers across the full OBAFGKM sequence? (ii) Where does photometric classification fundamentally break down, and why? (iii) For which spectral class does ML provide the most operationally useful improvement? Our central thesis is that ML on photometric colors yields genuine, operationally useful gains for some classes, dramatically so for K-type stars, while the F/G boundary near 6,000&nbsp;K remains fundamentally unresolvable without spectroscopy. The interesting result lies in cleanly separating the two regimes.</p>
+
+  <h2 class="sec"><span class="n">2</span>Methods</h2>
+
+  <h3 class="sub">2.1&ensp;Data acquisition</h3>
+  <p>I pulled the data from SDSS using a database query that matches each star's image measurements to its spectrum, keeping only objects confidently classified as stars. To make sure the brightness measurements were trustworthy, I dropped stars that were too bright or too faint, anything with large measurement errors, and duplicate observations. After cleaning, the sample contains 93,628 stars.</p>
+
+  <div class="tbl">
+    <p class="cap"><b>Table 1.</b> Class distribution of the cleaned SDSS stellar sample. The heavy skew toward F/G/K reflects the true population of a magnitude-limited survey, not a sampling artifact; it is handled in training rather than erased.</p>
+    <table class="book">
+      <thead><tr><th>Class</th><th>Count</th><th>Share</th><th style="text-align:left;padding-left:24px;">Character</th></tr></thead>
+      <tbody>
+        <tr><td>O</td><td class="mono-cell">463</td><td class="mono-cell">0.5%</td><td style="text-align:left;padding-left:24px;">hot, blue, rare</td></tr>
+        <tr><td>B</td><td class="mono-cell">834</td><td class="mono-cell">0.9%</td><td style="text-align:left;padding-left:24px;">hot, blue</td></tr>
+        <tr><td>A</td><td class="mono-cell">13,099</td><td class="mono-cell">14.0%</td><td style="text-align:left;padding-left:24px;">white</td></tr>
+        <tr><td>F</td><td class="mono-cell">48,667</td><td class="mono-cell">52.0%</td><td style="text-align:left;padding-left:24px;">dominant class</td></tr>
+        <tr><td>G</td><td class="mono-cell">9,320</td><td class="mono-cell">10.0%</td><td style="text-align:left;padding-left:24px;">Sun-like</td></tr>
+        <tr><td>K</td><td class="mono-cell">17,527</td><td class="mono-cell">18.7%</td><td style="text-align:left;padding-left:24px;">exoplanet hosts</td></tr>
+        <tr><td>M</td><td class="mono-cell">3,718</td><td class="mono-cell">4.0%</td><td style="text-align:left;padding-left:24px;">cool red dwarfs</td></tr>
+        <tr class="rule-top"><td class="em">Total</td><td class="mono-cell em">93,628</td><td class="mono-cell">100%</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub">2.2&ensp;Feature engineering</h3>
+  <p>Eleven features were constructed from the five SDSS magnitudes. The six <em>color indices</em> (<code>u&minus;g, g&minus;r, r&minus;i, i&minus;z, u&minus;r, g&minus;i</code>) are distance-independent: they depend only on the shape of the spectral energy distribution, which temperature sets. The five <em>raw magnitudes</em> (<code>u, g, r, i, z</code>) carry additional luminosity and distance information but introduce scatter. Both sets are supplied so the models can learn their relative usefulness rather than having it imposed a priori.</p>
+
+  <h3 class="sub">2.3&ensp;Training strategy</h3>
+  <ul>
+    <li><b>Granular subclass training.</b> Models are trained on subtypes (<code>G2</code>, <code>K1</code>) rather than coarse letters, preserving the continuous temperature gradient, so the model learns that G0 sits closer to F9 than to G9. Predictions are coarsened to letters (<code>G2</code> &rarr; <code>G</code>) only afterward, for evaluation, never before training.</li>
+    <li><b>Rare-class filtering.</b> Subtypes with fewer than 20 examples are dropped before fitting; they are too sparse for meaningful learning and break stratified cross-validation.</li>
+    <li><b>Honest imbalance handling.</b> Rather than fabricating stars with SMOTE, which would violate true astrophysical class frequencies, we use <code>class_weight='balanced'</code> and cost-sensitive boosting, penalizing rare O/B misclassifications more heavily without inventing data.</li>
+    <li><b>Splits.</b> 70 / 10 / 20 train / validation / test, stratified by subtype. Validation is reserved solely for post-hoc threshold tuning; the test set is held out entirely until final evaluation.</li>
+  </ul>
+
+  <h3 class="sub">2.4&ensp;Models</h3>
+  <ul>
+    <li><b>Baseline (classical color cuts).</b> Fixed threshold rules on <code>g&minus;r</code> and <code>u&minus;g</code>, mirroring pre-ML practice. It requires no training and is fully interpretable, setting the bar every ML model must clear.</li>
+    <li><b>Random Forest.</b> 300 trees, balanced class weights, all eleven features; 5-fold cross-validated. Handles mixed feature importance natively and needs no scaling.</li>
+    <li><b>XGBoost.</b> Gradient-boosted trees (300 rounds, depth 6, learning rate 0.1). Labels are integer-encoded after rare-class filtering, which is necessary because XGBoost requires gap-free class indices.</li>
+    <li><b>MLP.</b> A fully-connected network with hidden layers [128, 64, 32], ReLU activations, and early stopping, behind a <code>StandardScaler</code> since neural networks are scale-sensitive in a way trees are not.</li>
+  </ul>
+  <p>After training, per-class probability multipliers are tuned on the validation set to reduce systematic F over-prediction at G's expense (grid search over [0.5, 2.0] maximizing coarse weighted-F1). This is applied to the tree models; the MLP's softmax output is already well-calibrated. We deliberately <em>exclude</em> the spectroscopic effective temperature <code>elodieTEff</code> from training: since spectral class is essentially a binning of temperature, including it would constitute direct data leakage.</p>
+
+  <h2 class="sec"><span class="n">3</span>Results</h2>
+
+  <h3 class="sub">3.1&ensp;Overall performance</h3>
+  <p>All three ML models clear the baseline comfortably on weighted F1, precision, and recall across the full OBAFGKM sequence. The gains concentrate in the cooler classes (K, M); O and B see little movement because their extreme blue colors already make them photometrically isolated and easy even for the naive baseline. Notably, the three models land within 0.004 of one another on weighted F1 despite very different architectures, which suggests the ceiling here is set by the information in the photometry itself, not by model choice; the F/G boundary discussed next is the clearest expression of that limit.</p>
+
+  <figure>
+    <img src="confusion_all_models_obafgkm.png" alt="Confusion matrices">
+    <figcaption><b>Figure 1.</b> Row-normalized confusion matrices across all seven classes (baseline and three ML models). The bright diagonals of the ML models contrast with the smeared baseline; the residual off-diagonal F&harr;G leakage persists in every panel.</figcaption>
+  </figure>
+
+  <div class="tbl">
+    <p class="cap"><b>Table 2.</b> Weighted metrics on the full OBAFGKM test set. <em>Precision</em> asks, of the stars the model labelled as a given class, how many truly were; <em>recall</em> asks, of all the stars that truly belong to a class, how many the model caught; <em>F1</em> is their balance. All three ML models land close together near 0.78&ndash;0.79 and clear the color-cut baseline by a wide margin; XGBoost edges the others on weighted F1.</p>
+    <table class="book">
+      <thead><tr><th>Model</th><th>Weighted F1</th><th>Precision</th><th>Recall</th></tr></thead>
+      <tbody>
+        <tr><td>Baseline (color cuts)</td><td class="mono-cell">0.549</td><td class="mono-cell">0.665</td><td class="mono-cell">0.516</td></tr>
+        <tr><td>Random Forest</td><td class="mono-cell">0.781</td><td class="mono-cell">0.781</td><td class="mono-cell">0.789</td></tr>
+        <tr class="best"><td class="em">XGBoost</td><td class="mono-cell em">0.783</td><td class="mono-cell em">0.780</td><td class="mono-cell">0.788</td></tr>
+        <tr><td>MLP [128,64,32]</td><td class="mono-cell">0.779</td><td class="mono-cell">0.778</td><td class="mono-cell">0.795</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub">3.2&ensp;The F/G confusion problem</h3>
+  <p>The most stubborn failure mode, shared by every model including the baseline, is F-versus-G confusion. Across the ML models, roughly 28&ndash;34% of true G stars are misclassified as F, while F itself is recovered at ~89&ndash;91%. The asymmetry is consistent: F over-predicted, G under-predicted. This is not a bug to be tuned away. The F/G boundary sits near 6,000&nbsp;K, corresponding to <code>g&minus;r &asymp; 0.45</code>. SDSS photometric uncertainties of 0.02&ndash;0.05&nbsp;mag in <code>g</code> and <code>r</code> translate to temperature uncertainties of several hundred Kelvin at that boundary, so late-F stars (F8, F9) and early-G stars (G0, G1) are genuinely indistinguishable in broadband colors. Resolving them requires spectroscopy: specifically the Ca&nbsp;II H&amp;K lines or the Mg&nbsp;b triplet that straddle 6,000&nbsp;K. The F/G wall is a physical limit of the data, not a deficiency of the model.</p>
+
+  <figure>
+    <img src="per_class_f1_fgkm.png" alt="Per-class F1 for F, G, K, M">
+    <figcaption><b>Figure 2.</b> Per-class F1 restricted to F/G/K/M. The depressed G bar across all models is the visual signature of the irreducible F/G degeneracy near 6,000&nbsp;K.</figcaption>
+  </figure>
+
+  <h3 class="sub">3.3&ensp;K-type classification: the headline result</h3>
+  <p>The most operationally significant finding is the leap in K-type classification. K stars matter: they are long-lived, stable, and the most common hosts targeted in exoplanet surveys, cool enough for interesting molecular features but without the violent variability of M dwarfs. Cleanly pre-selecting them from imaging alone is genuinely useful.</p>
+
+  <div class="headline">
+    <div class="h-row">
+      <div class="stat"><div class="v">58%<span class="ar">&rarr;</span>90%</div><div class="l">Precision&ensp;(+32 pp)</div></div>
+      <div class="stat"><div class="v">46%<span class="ar">&rarr;</span>91%</div><div class="l">Recall&ensp;(+45 pp)</div></div>
+      <div class="stat"><div class="v">51%<span class="ar">&rarr;</span>90%</div><div class="l">F1&ensp;(+39 pp)</div></div>
     </div>
-    <p class="rv" style="font-size:.9rem;color:var(--ink-faint);">The heavy skew toward F/G/K is real—it reflects the true population of a magnitude-limited survey, not a sampling artifact. This imbalance is handled in training rather than erased.</p>
+  </div>
 
-    <h3 class="subsec rv">2.2 · Label parsing</h3>
-    <p class="rv">Raw SDSS <code>subClass</code> strings cram spectral type and luminosity class together in inconsistent notation: <code>G2V</code>, <code>K1III</code>, <code>B0.5Iae</code>. Training on those raw strings would create hundreds of messy targets that confuse temperature with evolutionary stage. A custom parser strips this down to the temperature-relevant core—the leading letter plus its integer subtype—discarding luminosity suffixes and rejecting non-main-sequence objects (white dwarfs, subdwarfs, carbon stars). This yields two clean labels: <code>spectral_subclass</code> (e.g. <code>G2</code>, the ML target) and <code>spectral_class</code> (e.g. <code>G</code>, used for evaluation). The parsing produces <strong>53 distinct subtypes</strong>.</p>
+  <p>The recall jump is the striking part. The baseline misses more than half of all true K stars because its fixed <code>g&minus;r</code> thresholds cannot capture K stars sitting near the G/K or K/M boundaries. The ML models, operating in the full eleven-dimensional feature space, learn that combinations of <code>r&minus;i</code>, <code>i&minus;z</code>, and <code>g&minus;i</code> isolate the K regime far more reliably than any single color index. At ~90% precision and ~91% recall, when a model flags a star as K it is right roughly nine times in ten, and it catches roughly nine of every ten true K stars. The candidate list is clean and complete enough to drive spectroscopic follow-up.</p>
 
-    <h3 class="subsec rv">2.3 · Feature engineering</h3>
-    <p class="rv">Eleven features were built from the five magnitudes—six color indices plus the five raw magnitudes:</p>
-    <div class="feat-grid rv">
-      <div class="feat"><div class="ft">u−g · g−r · r−i · i−z · u−r · g−i</div><p class="fd"><b>Color indices.</b> Distance-independent: they depend only on the <em>shape</em> of the spectral energy distribution, which temperature sets. The workhorses of the model.</p></div>
-      <div class="feat"><div class="ft">u · g · r · i · z</div><p class="fd"><b>Raw magnitudes.</b> Carry extra luminosity/distance information but introduce scatter. Included so the model can weigh them itself.</p></div>
-    </div>
+  <figure>
+    <img src="k_class_highlight.png" alt="K-type precision, recall, and F1 by model, and improvement over baseline">
+    <figcaption><b>Figure 3.</b> K-type precision, recall, and F1 by model (left) and improvement over the classical baseline (right). The recall delta is the standout.</figcaption>
+  </figure>
 
-    <h3 class="subsec rv">2.4 · Training strategy</h3>
-    <ul class="clean rv">
-      <li><b>Granular subclass training.</b> Models train on subtypes (<code>G2</code>, <code>K1</code>) rather than coarse letters, preserving the continuous temperature gradient—the model learns that G0 sits closer to F9 than to G9. Predictions are coarsened to letters <em>only after</em> the fact for evaluation, never before.</li>
-      <li><b>Rare-class filtering.</b> Subtypes with fewer than 20 examples are dropped before fitting; they are too sparse to learn and break stratified cross-validation.</li>
-      <li><b>Honest imbalance handling.</b> Rather than fabricating stars with SMOTE—which would violate the true astrophysical class frequencies—I use <code>class_weight='balanced'</code> and cost-sensitive boosting. Rare O/B misclassifications are penalized more heavily without inventing data.</li>
-      <li><b>Split.</b> 70 / 10 / 20 train / validation / test, stratified by subtype. Validation is reserved solely for threshold tuning; the test set is untouched until final evaluation.</li>
-    </ul>
+  <h3 class="sub">3.4&ensp;Feature importance</h3>
+  <p>Importances from the two tree-based models align with physical expectations, indicating they learned genuine structure rather than artifacts. In both models the color indices occupy the top ranks while the raw magnitudes (<code>u, g, r, i, z</code>) cluster at the bottom, which is the result that matters: temperature is encoded in the <em>shape</em> of the spectral energy distribution that colors capture, not in absolute brightness. The exact ordering within the colors differs by model, as expected for correlated features. XGBoost leads with <code>u&minus;r</code>, <code>g&minus;r</code>, and <code>g&minus;i</code>; Random Forest leads with <code>r&minus;i</code>, <code>g&minus;i</code>, and <code>g&minus;r</code>. The recurring presence of <code>g&minus;r</code> and <code>g&minus;i</code> near the top of both is consistent with their role spanning the optical slope where the OBAFGKM sequence separates most cleanly. That the two algorithms agree on the color-over-magnitude split, despite disagreeing on the precise winner, is reassuring evidence the signal is physical rather than an artifact of one model.</p>
+  <figure>
+    <img src="feature_importance_xgboost_subclass_train.png" alt="XGBoost feature importances">
+    <figcaption><b>Figure 4.</b> XGBoost feature importances. The dominance of <code>g&minus;r</code> and the color indices over raw magnitudes recovers the known physics of the temperature sequence.</figcaption>
+  </figure>
 
-    <h3 class="subsec rv">2.5 · Models</h3>
-    <ul class="clean rv">
-      <li><b>Baseline — classical color cuts.</b> Fixed threshold rules on <code>g−r</code> and <code>u−g</code>, mirroring pre-ML practice. No training, fully interpretable. The bar every ML model must clear.</li>
-      <li><b>Random Forest.</b> 300 trees, balanced class weights, all 11 features. Handles mixed feature importance natively, needs no scaling, and exposes interpretable importances. 5-fold cross-validated.</li>
-      <li><b>XGBoost.</b> Gradient-boosted trees (300 rounds, depth 6, lr 0.1). Labels integer-encoded post rare-class filtering—a necessary detail since XGBoost requires gap-free class indices.</li>
-      <li><b>MLP.</b> A [128, 64, 32] fully-connected network with ReLU and early stopping, behind a <code>StandardScaler</code> since neural nets are scale-sensitive in a way trees are not.</li>
-      <li><b>Post-hoc threshold tuning.</b> Per-class probability multipliers tuned on validation to curb systematic F over-prediction at G's expense; applied to the tree models, whose raw probabilities are less calibrated than the MLP's softmax.</li>
-    </ul>
-    <p class="rv" style="font-size:.9rem;color:var(--ink-faint);">A note on integrity: the spectroscopic effective temperature <code>elodieTEff</code> was deliberately <em>excluded</em> from training. Since spectral class is essentially a binning of temperature, including it would be direct data leakage—the model would be handed the answer.</p>
+  <figure>
+    <img src="feature_importance_random_forest_subclass_train.png" alt="Random Forest feature importances">
+    <figcaption><b>Figure 5.</b> Random Forest feature importances. The ranking closely tracks XGBoost, with the color indices leading and raw magnitudes contributing least, confirming the result is not an artifact of a single model.</figcaption>
+  </figure>
+
+  <h3 class="sub">3.5&ensp;Where the stars land: the HR diagram</h3>
+  <p>The Hertzsprung&ndash;Russell diagram is one of the most useful plots in astronomy. It places each star by its color (which tracks temperature) and its brightness, and stars don't land randomly: they line up along a band running from hot blue stars to cool red ones. Figure 6 shows this with <code>g&minus;r</code> color across the bottom (blue and hot on the left, red and cool on the right) and brightness up the side.</p>
+  <p>Putting the true labels next to the model's predictions makes it an easy visual check. The two panels look almost the same, with the white-and-yellow stars bunched in the middle and the orange-and-red ones spreading to the right, which shows the model picked up the real color pattern rather than guessing. The fuzzy vertical spread is because we only know how bright each star <em>appears</em>, not how far away it is; distances from Gaia (discussed below) would tighten it up.</p>
+
+  <figure>
+    <img src="hr_diagram_xgboost_subclass_train.png" alt="Observational HR diagram, true labels versus XGBoost predictions">
+    <figcaption><b>Figure 6.</b> Observational HR diagram (color vs magnitude): true spectral classes (left) and XGBoost predictions (right). The close match between panels shows the model reproduces the physical color&ndash;temperature sequence. The vertical smearing reflects the use of apparent rather than absolute magnitude.</figcaption>
+  </figure>
+
+  <h2 class="sec"><span class="n">4</span>Discussion &amp; Conclusions</h2>
+
+  <h3 class="sub">4.1&ensp;What worked</h3>
+  <p>ML on SDSS photometric colors delivers real, operationally useful gains over classical color cuts, but not uniformly. K-type classification is the clear success: balanced class weighting, a rich eleven-dimensional feature space, and subclass-granular training combine to identify ~91% of K stars at ~90% precision. For survey astronomy this means photometry alone can pre-select K-star candidates reliably, cutting the spectroscopic burden for exoplanet host studies. Training on granular subtypes and coarsening only afterward paid off in smoother, better-placed decision boundaries at the coarse level.</p>
+
+  <h3 class="sub">4.2&ensp;Honest limitations</h3>
+  <p>The F/G confusion is the project's most honest result. Despite threshold tuning, oversampling experiments, and multiple architectures, every model misclassifies 28&ndash;34% of G stars as F. This is the expected behavior of any photometric classifier at the 6,000&nbsp;K boundary, and is best read as confirmation of a known astrophysical constraint rather than a shortfall. O and B stars remain hard for a different reason: they are genuinely rare (&lt;1% combined), so even balanced weighting leaves modest recall. Finally, the labels themselves derive from ELODIE template matching, which carries its own boundary-region uncertainty, meaning a fraction of the "ground truth" is itself fuzzy.</p>
+
+  <h3 class="sub">4.3&ensp;Future work</h3>
+  <ul>
+    <li><b>Gaia parallaxes.</b> The single most promising next step. The European Space Agency's Gaia mission measured precise distances to nearly two billion stars using parallax, the small apparent shift in a star's position as the Earth moves around the Sun (nearer stars shift more, so the shift gives distance by simple geometry). This work uses only <em>apparent</em> brightness, which blends two unknowns: how luminous a star actually is, and how far away it sits. A Gaia distance disentangles them, converting apparent magnitude into <em>absolute</em> magnitude, the star's true intrinsic luminosity. That adds a genuinely new physical axis beyond color, and it is exactly the axis the F/G boundary needs: a late-F dwarf and an early-G subgiant can share nearly identical colors yet differ substantially in luminosity, so two stars that are inseparable in color space pull apart once their absolute brightness is known. Folding Gaia distances into the feature set is therefore the most direct route to breaking the 6,000&nbsp;K degeneracy that no amount of color information can resolve on its own.</li>
+    <li><b>A dedicated K-star catalogue tool.</b> A binary K-vs-rest classifier optimized for recall could plausibly exceed 95%, publishable as a photometric K-star selection utility.</li>
+    <li><b>Per-star interpretability.</b> SHAP values would decompose individual predictions, making the classifier auditable for downstream astrophysical use.</li>
+  </ul>
+
+  <h3 class="sub">4.4&ensp;Conclusion</h3>
+  <p>Broadband photometric ML is a reliable tool for K-type identification (F1 &asymp; 90%, +39&nbsp;pp over classical cuts) and a useful pre-classifier across the OBAFGKM sequence, while the F/G boundary near 6,000&nbsp;K remains fundamentally unresolvable without spectroscopy. The results sit exactly where the physics says they should, and point to Gaia parallax integration as the most productive direction for improving boundary-region classification.</p>
+
+  <section class="refs">
+    <h2>Data &amp; Acknowledgements</h2>
+    <p>Sloan Digital Sky Survey, Data Release 17 (DR17). Photometry in the <code>ugriz</code> system; spectral labels from the SDSS pipeline and ELODIE template matching. Data accessed via the SkyServer ADQL interface and the <code>astroquery.sdss</code> module.</p>
+    <p>Pipeline implemented in Python with scikit-learn, XGBoost, pandas, and matplotlib. Full source and reproduction instructions are available in the project repository.</p>
   </section>
 
-  <!-- ================= 3. RESULTS ================= -->
-  <section id="results">
-    <span class="sec-num">03</span>
-    <h2 class="sec">Results</h2>
-
-    <h3 class="subsec rv">3.1 · Overall performance</h3>
-    <p class="rv">All three ML models clear the baseline comfortably on weighted F1, precision, and recall across the full sequence. The gains concentrate in the cooler classes (K, M); O and B see little movement because their extreme blue colors already make them photometrically isolated and easy for even the naive baseline.</p>
-
-    <figure class="rv">
-      <div class="figslot">
-        <span class="ic">▦ DROP IN FIGURE</span>
-        <p class="fname">confusion_all_models_obafgkm.png</p>
-        <p class="fhint">Replace this block with the full-OBAFGKM confusion matrices (baseline + 3 ML models, side by side). Save your image next to this file and swap the placeholder div for: <code>&lt;img src="confusion_all_models_obafgkm.png"&gt;</code></p>
-      </div>
-      <figcaption><b>Figure 1.</b> Row-normalized confusion matrices across all seven classes. The bright diagonal for ML models versus the smeared baseline tells the story at a glance; note the off-diagonal F/G leakage that survives in every panel.</figcaption>
-    </figure>
-
-    <div class="tablecard rv">
-      <table>
-        <caption>Weighted metrics — full OBAFGKM test set</caption>
-        <thead><tr><th>Model</th><th>Weighted F1</th><th>Precision</th><th>Recall</th></tr></thead>
-        <tbody>
-          <tr><td>Baseline (color cuts)</td><td>—</td><td>—</td><td>—</td></tr>
-          <tr><td>Random Forest</td><td>—</td><td>—</td><td>—</td></tr>
-          <tr><td>XGBoost</td><td>—</td><td>—</td><td>—</td></tr>
-          <tr><td>MLP [128,64,32]</td><td>—</td><td>—</td><td>—</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="rv" style="font-size:.86rem;color:var(--ink-faint);">↑ Fill these cells from your <code>print_summary_table</code> console output (Pass 1). Mark your best row with <code>class="best"</code> on the <code>&lt;tr&gt;</code> to get the amber pointer.</p>
-
-    <h3 class="subsec rv">3.2 · The F/G confusion problem</h3>
-    <p class="rv">The most stubborn failure mode—shared by <em>every</em> model including the baseline—is F-versus-G confusion. Across the ML models, roughly <strong>28–34% of true G stars are misclassified as F</strong>, while F itself is recovered at ~89–91%. The asymmetry is consistent: F over-predicted, G under-predicted.</p>
-    <p class="rv">This is not a bug to be tuned away. The F/G boundary sits near 6,000 K, corresponding to <code>g−r ≈ 0.45</code>. SDSS photometric uncertainties of 0.02–0.05 mag in <code>g</code> and <code>r</code> translate to temperature uncertainties of several hundred Kelvin right at that boundary. Late-F stars (F8, F9) and early-G stars (G0, G1) are <em>genuinely</em> indistinguishable in broadband colors. Resolving them needs spectroscopy—the Ca II H&amp;K lines or the Mg b triplet that straddle 6,000 K. The F/G wall is a physical limit of the data, not a deficiency of the model.</p>
-
-    <figure class="rv">
-      <div class="figslot">
-        <span class="ic">▦ DROP IN FIGURE</span>
-        <p class="fname">per_class_f1_fgkm.png</p>
-        <p class="fhint">Replace with the FGKM-only per-class F1 bar chart (Pass 2). This is the clearest visual of where the models diverge—the easy O/B/A classes are filtered out so the hard region is isolated.</p>
-      </div>
-      <figcaption><b>Figure 2.</b> Per-class F1 restricted to F/G/K/M, the photometrically hard region. The depressed G bar across all models is the visual signature of the irreducible F/G degeneracy.</figcaption>
-    </figure>
-
-    <h3 class="subsec rv">3.3 · K-type classification — the headline result</h3>
-    <p class="rv">The most operationally significant finding is the leap in K-type classification. K stars matter: they are long-lived, stable, and the most common hosts targeted in <strong>exoplanet surveys</strong>—cool enough for interesting molecular features but without the violent variability of M dwarfs. Cleanly pre-selecting them from imaging alone is genuinely useful.</p>
-
-    <div class="stat-band rv">
-      <div class="stat">
-        <div class="big">58% <span class="arrow">→</span> 90%</div>
-        <div class="lab">Precision</div>
-        <div class="delta">+32 pp</div>
-      </div>
-      <div class="stat">
-        <div class="big">46% <span class="arrow">→</span> 91%</div>
-        <div class="lab">Recall</div>
-        <div class="delta">+45 pp</div>
-      </div>
-      <div class="stat">
-        <div class="big">51% <span class="arrow">→</span> 90%</div>
-        <div class="lab">F1 score</div>
-        <div class="delta">+39 pp</div>
-      </div>
-    </div>
-    <p class="rv" style="font-size:.86rem;color:var(--ink-faint);text-align:center;margin-top:-14px;">Baseline color cuts → best ML model, K-type stars.</p>
-
-    <p class="rv">The recall jump is the striking part. The baseline misses more than half of all true K stars because its fixed <code>g−r</code> thresholds can't capture K stars sitting near the G/K or K/M boundaries. The ML models, working in the full 11-dimensional space, learn that combinations of <code>r−i</code>, <code>i−z</code>, and <code>g−i</code> isolate the K regime far more reliably than any single color. At ~90% precision <em>and</em> ~91% recall, when a model flags a star as K it is right roughly 9 times in 10, and it catches roughly 9 of every 10 real K stars—a candidate list that is both clean and complete enough to drive spectroscopic follow-up.</p>
-
-    <figure class="rv">
-      <div class="figslot">
-        <span class="ic">▦ DROP IN FIGURE</span>
-        <p class="fname">k_class_highlight.png</p>
-        <p class="fhint">Replace with the two-panel K-class spotlight (absolute precision/recall/F1 per model, plus the delta-vs-baseline panel). This is your money figure—the one a reviewer remembers.</p>
-      </div>
-      <figcaption><b>Figure 3.</b> K-type precision, recall, and F1 by model (left) and improvement over the classical baseline (right). The recall delta is the standout.</figcaption>
-    </figure>
-
-    <h3 class="subsec rv">3.4 · Feature importance</h3>
-    <p class="rv">Importances from the tree models line up with physics, which is a good sign the models learned something real rather than an artifact. <code>g−r</code> dominates (≈25–35% of total importance), exactly as expected for the primary temperature proxy. <code>r−i</code> and <code>i−z</code> follow, doing the heavy lifting for K/M separation where near-infrared molecular bands bite. <code>u−g</code> matters mainly for the hot O/B stars where the UV excess is diagnostic. Raw magnitudes contribute less than colors throughout—consistent with distance-dependent features adding noise.</p>
-
-    <figure class="rv">
-      <div class="figslot">
-        <span class="ic">▦ DROP IN FIGURE</span>
-        <p class="fname">feature_importance_xgboost.png &nbsp;/&nbsp; hr_diagram_*.png</p>
-        <p class="fhint">Drop in the feature-importance bar chart, and optionally the observational HR (color–magnitude) diagram showing true vs predicted classes side by side. Both are produced by the evaluation pass.</p>
-      </div>
-      <figcaption><b>Figure 4.</b> Feature importances (tree models). The dominance of <code>g−r</code> and the color indices over raw magnitudes recovers the known physics of the temperature sequence.</figcaption>
-    </figure>
-  </section>
-
-  <!-- ================= 4. CONCLUSIONS ================= -->
-  <section id="conclusions">
-    <span class="sec-num">04</span>
-    <h2 class="sec">Conclusions</h2>
-
-    <h3 class="subsec rv">What worked</h3>
-    <p class="rv">ML on SDSS photometric colors delivers real, operationally useful gains over classical color cuts—but not uniformly. <strong>K-type classification is the clear success</strong>: balanced class weighting, a rich 11-dimensional feature space, and subclass-granular training combine to identify ~91% of K stars at ~90% precision. For survey astronomy that means photometry alone can pre-select K-star candidates reliably, cutting the spectroscopic burden for exoplanet host studies. The decision to train on granular subtypes and coarsen only afterward paid off in smoother, better-placed decision boundaries.</p>
-
-    <h3 class="subsec rv">Honest limitations</h3>
-    <p class="rv">The F/G confusion is the project's most honest result. Despite threshold tuning, oversampling experiments, and multiple architectures, every model misclassifies 28–34% of G stars as F—the expected behavior of <em>any</em> photometric classifier at the 6,000 K boundary. It should be read as confirmation of a known astrophysical constraint, not a shortfall. O and B stars stay hard for a different reason—they are genuinely rare (&lt;1% combined), so even balanced weighting leaves modest recall. And the labels themselves come from ELODIE template matching, which carries its own boundary-region uncertainty, meaning a fraction of the "ground truth" is itself fuzzy.</p>
-
-    <h3 class="subsec rv">Where this goes next</h3>
-    <ul class="clean rv">
-      <li><b>Gaia parallaxes.</b> Adding absolute magnitudes injects a luminosity dimension that could break the F/G degeneracy by separating subgiants from main-sequence stars near 6,000 K—the single most promising next step.</li>
-      <li><b>A dedicated K-star catalogue tool.</b> A binary K-vs-rest classifier optimized for recall could plausibly clear 95%, which would be publishable as a photometric K-star selection utility.</li>
-      <li><b>Per-star interpretability.</b> SHAP values would decompose individual predictions, making the classifier auditable for downstream astrophysical use.</li>
-      <li><b>Generalization tests.</b> Running the trained models on SDSS Stripe 82 (deeper, repeat photometry) would test whether photometric precision is the F/G bottleneck; applying them to simulated LSST/Rubin photometry would probe next-generation transfer.</li>
-    </ul>
-
-    <div class="thesis rv">
-      <div class="label">Concluding statement</div>
-      <p>Broadband photometric ML is a reliable tool for K-type identification (F1 ≈ 90%, +39 pp over classical cuts) and a useful pre-classifier across OBAFGKM—while the F/G boundary near 6,000 K stays fundamentally unresolvable without spectroscopy. The results sit exactly where the physics says they should, and point to Gaia parallax integration as the most productive way forward.</p>
-    </div>
-  </section>
-
-  <!-- ================= FOOTER ================= -->
   <footer>
-    <p class="ackn">Built on the Sloan Digital Sky Survey, whose open data archive makes projects like this possible for anyone with a question and a query. Spectral labels derive from SDSS pipeline classifications and ELODIE template matching.</p>
-    <p class="meta">
-      JENSEN · STELLAR CLASSIFICATION · SDSS DR17<br>
-      Random Forest · XGBoost · MLP · scikit-learn · astroquery<br>
-      Pipeline &amp; figures reproducible from source — <code>python Star_Classification.py</code>
-    </p>
+    JENSEN &middot; STELLAR SPECTRAL CLASSIFICATION &middot; SDSS DR17<br>
+    Random Forest &middot; XGBoost &middot; MLP &middot; scikit-learn &middot; astroquery<br>
+    Reproducible from source: <code>python Star_Classification.py</code>
   </footer>
 
-</div>
-
-<script>
-  /* ---- starfield ---- */
-  (function(){
-    const c=document.getElementById('stars'),x=c.getContext('2d');
-    let w,h,stars;
-    function size(){w=c.width=innerWidth;h=c.height=Math.max(innerHeight,document.body.scrollHeight);init();}
-    function init(){
-      const n=Math.min(420,Math.floor(w*h/6500));
-      const pal=['#ffffff','#cfe0ff','#fff3cf','#ffd9a0','#ffb0b0'];
-      stars=Array.from({length:n},()=>({
-        x:Math.random()*w,y:Math.random()*h,
-        r:Math.random()*1.3+.2,
-        a:Math.random()*.6+.2,
-        tw:Math.random()*.018+.004,
-        ph:Math.random()*Math.PI*2,
-        col:pal[Math.floor(Math.random()*pal.length)]
-      }));
-    }
-    function draw(t){
-      x.clearRect(0,0,w,h);
-      for(const s of stars){
-        const al=s.a+Math.sin(t*s.tw+s.ph)*.25;
-        x.globalAlpha=Math.max(0,Math.min(1,al));
-        x.fillStyle=s.col;
-        x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill();
-        if(s.r>1){x.globalAlpha*=.25;x.beginPath();x.arc(s.x,s.y,s.r*2.6,0,7);x.fill();}
-      }
-      requestAnimationFrame(draw);
-    }
-    addEventListener('resize',size);size();requestAnimationFrame(draw);
-  })();
-
-  /* ---- scroll reveal ---- */
-  const io=new IntersectionObserver((es)=>{
-    es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
-  },{threshold:.12});
-  document.querySelectorAll('.rv').forEach(el=>io.observe(el));
-
-  /* ---- nav dot highlight ---- */
-  const secs=[...document.querySelectorAll('section,#abstract')];
-  const dots=[...document.querySelectorAll('.tocnav a')];
-  const map={abstract:0,intro:1,methods:2,results:3,conclusions:4};
-  const so=new IntersectionObserver((es)=>{
-    es.forEach(e=>{
-      if(e.isIntersecting){
-        const i=map[e.target.id];
-        if(i!=null){dots.forEach(d=>d.classList.remove('on'));dots[i]&&dots[i].classList.add('on');}
-      }
-    });
-  },{rootMargin:'-45% 0px -45% 0px'});
-  secs.forEach(s=>so.observe(s));
-</script>
+</article>
 </body>
 </html>

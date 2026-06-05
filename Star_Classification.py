@@ -10,6 +10,7 @@ Usage:
 """
 
 import argparse
+import os
 from fetch_sdss import fetch_stars, clean_and_engineer, summarize, save
 from models import run_all
 from evaluate import run_evaluation
@@ -43,8 +44,10 @@ USE_THRESHOLD_TUNING = True
 # Classes below this threshold are dropped before training.
 MIN_SAMPLES = 20
 
-# Output directory for CSVs and figures
-DEFAULT_OUT = r"C:\Users\jense\OneDrive - University of Toronto\Work\Cover Letter\Resume LaTeX\Astronomy\Star Classification"
+# Output directory for CSVs (figures go to a "figures/" subfolder, handled in
+# evaluate.py). Defaults to the folder this script lives in, so the pipeline is
+# fully portable: clone the repo anywhere and outputs land next to the code.
+DEFAULT_OUT = os.path.dirname(os.path.abspath(__file__))
 
 # =============================================================================
 
